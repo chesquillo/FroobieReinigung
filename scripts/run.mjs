@@ -14,6 +14,11 @@ if (cloud && cmd === 'start') {
   if (missing.length) problems.push(`Faltan variables de entorno en Render: ${missing.join(', ')}`);
   if (db && !/^postgres(ql)?:\/\//.test(db)) problems.push('DATABASE_URL debe empezar por postgresql:// (Supabase → Connect → Session pooler)');
   if (/\[YOUR-PASSWORD\]|\[PASSWORD\]/i.test(db)) problems.push('DATABASE_URL todavía contiene [YOUR-PASSWORD]: pon tu contraseña de la base de datos');
+  // Valores de ejemplo copiados sin cambiar
+  const examples = { DATABASE_URL: /xxxx|TU-CONTRASE/i, SUPABASE_URL: /xxxx/i, SUPABASE_SERVICE_ROLE_KEY: /xxxx/i, ADMIN_INITIAL_PASSWORD: /^UnaContraseñaNueva2026!$/, JWT_SECRET: /escribe-aqui/ };
+  for (const [k, re] of Object.entries(examples)) {
+    if (re.test(process.env[k] ?? '')) problems.push(`${k} todavía tiene el valor de EJEMPLO: sustitúyelo por el tuyo real`);
+  }
   if ((process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').startsWith('sb_publishable_'))
     problems.push('SUPABASE_SERVICE_ROLE_KEY es la clave pública (sb_publishable_…): usa la secreta (sb_secret_…)');
   if (problems.length) {
