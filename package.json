@@ -11,13 +11,13 @@
     "build": "npm --prefix web run build && npm --prefix server run build",
     "start": "npm --prefix server run start",
     "test": "npm --prefix server test",
-    "cloud:build": "npm --prefix server install --include=dev && npm --prefix web install --include=dev && npm --prefix web run build && npm --prefix server run cloud:build",
+    "cloud:build": "npm --prefix server ci --include=dev && npm --prefix web ci --include=dev && npm --prefix web run build && npm --prefix server run cloud:build",
     "cloud:start": "npm --prefix server run cloud:start"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   }
 }
