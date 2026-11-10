@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath as _f } from 'node:url';
 import _path from 'node:path';
 import { readFileSync } from 'node:fs';
+import { createHmac } from 'node:crypto';
 
 // .env.local (tus claves de Supabase) tiene prioridad sobre .env
 {
@@ -25,13 +26,23 @@ export const SERVER_ROOT = path.resolve(here, '..');
 export const UPLOAD_DIR = path.join(SERVER_ROOT, 'uploads');
 export const WEB_DIST = path.resolve(SERVER_ROOT, '..', 'web', 'dist');
 
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET es obligatorio en producción');
+// Secreto de las sesiones: JWT_SECRET si es válido; si no, se deriva de la clave secreta de Supabase
+function resolveJwtSecret(): string {
+  const given = process.env.JWT_SECRET ?? '';
+  if (given.length >= 16 && !/escribe-aqui/.test(given)) return given;
+  const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+  if (supaKey && !supaKey.startsWith('sb_publishable_')) {
+    return createHmac('sha256', supaKey).update('froobie-session-secret-v1').digest('hex');
+  }
+  if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
+    throw new Error('Falta JWT_SECRET (o SUPABASE_SERVICE_ROLE_KEY) en producción');
+  }
+  return 'dev-secret-change-me';
 }
 
 export const config = {
   port: Number(process.env.PORT ?? 3000),
-  jwtSecret: process.env.JWT_SECRET ?? 'dev-secret-change-me',
+  jwtSecret: resolveJwtSecret(),
   timezone: process.env.APP_TIMEZONE ?? 'Europe/Berlin',
   publicUrl: (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173').replace(/\/$/, ''),
   fakeToday: process.env.FAKE_TODAY || '',

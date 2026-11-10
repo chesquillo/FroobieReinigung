@@ -7,7 +7,7 @@ const cloud = !!process.env.RENDER || /^postgres(ql)?:/.test(process.env.DATABAS
 const run = (c) => execSync(c, { stdio: 'inherit' });
 
 if (cloud && cmd === 'start') {
-  const required = ['DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'ADMIN_INITIAL_PASSWORD', 'JWT_SECRET'];
+  const required = ['DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'ADMIN_INITIAL_PASSWORD'];
   const missing = required.filter((k) => !process.env[k]);
   const db = process.env.DATABASE_URL ?? '';
   const problems = [];
@@ -15,7 +15,7 @@ if (cloud && cmd === 'start') {
   if (db && !/^postgres(ql)?:\/\//.test(db)) problems.push('DATABASE_URL debe empezar por postgresql:// (Supabase → Connect → Session pooler)');
   if (/\[YOUR-PASSWORD\]|\[PASSWORD\]/i.test(db)) problems.push('DATABASE_URL todavía contiene [YOUR-PASSWORD]: pon tu contraseña de la base de datos');
   // Valores de ejemplo copiados sin cambiar
-  const examples = { DATABASE_URL: /xxxx|TU-CONTRASE/i, SUPABASE_URL: /xxxx/i, SUPABASE_SERVICE_ROLE_KEY: /xxxx/i, ADMIN_INITIAL_PASSWORD: /^UnaContraseñaNueva2026!$/, JWT_SECRET: /escribe-aqui/ };
+  const examples = { DATABASE_URL: /xxxx|TU-CONTRASE/i, SUPABASE_URL: /xxxx/i, SUPABASE_SERVICE_ROLE_KEY: /xxxx/i, ADMIN_INITIAL_PASSWORD: /^UnaContraseñaNueva2026!$/ };
   for (const [k, re] of Object.entries(examples)) {
     if (re.test(process.env[k] ?? '')) problems.push(`${k} todavía tiene el valor de EJEMPLO: sustitúyelo por el tuyo real`);
   }
