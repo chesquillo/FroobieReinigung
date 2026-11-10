@@ -1,0 +1,11 @@
+node_modules
+dist
+server/.env
+server/prisma/*.db
+server/prisma/*.db-journal
+server/uploads/*
+!server/uploads/machine-1.png
+.DS_Store
+server/prisma/postgres.prisma
+*.tsbuildinfo
+server/.env.local

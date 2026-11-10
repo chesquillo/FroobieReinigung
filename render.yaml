@@ -1,0 +1,27 @@
+# Despliegue gratuito en Render (https://render.com) — "New > Blueprint" y elige este repositorio.
+services:
+  - type: web
+    name: froobie
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm run cloud:build
+    startCommand: npm run cloud:start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_TIMEZONE
+        value: Europe/Berlin
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: froobieadmin
+      - key: ADMIN_INITIAL_PASSWORD
+        sync: false   # se pide al crear el servicio
+      - key: DATABASE_URL
+        sync: false   # cadena de conexión de Supabase (Session pooler)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

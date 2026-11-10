@@ -1,0 +1,141 @@
+// Froobie – modelo de datos
+// En local se usa SQLite. Para la nube cambia provider a "postgresql" y DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String    @unique
+  fullName     String
+  passwordHash String
+  role         String    @default("WORKER") // ADMIN | WORKER
+  language     String    @default("de") // de | en | es
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  records      CleaningRecord[]
+  incidents    Incident[]
+  maintenance  MaintenanceLog[]
+  audits       AuditLog[]
+}
+
+model Machine {
+  id           Int       @id @default(autoincrement())
+  number       Int       @unique
+  name         String
+  model        String?
+  serialNumber String?
+  manufacturer String?
+  location     String?
+  photoUrl     String?
+  qrToken      String    @unique
+  status       String    @default("OK") // OK | MAINTENANCE | OUT_OF_SERVICE
+  createdAt    DateTime  @default(now())
+  plans        CleaningPlan[]
+  records      CleaningRecord[]
+  incidents    Incident[]
+  maintenance  MaintenanceLog[]
+}
+
+model CleaningPlan {
+  id          Int       @id @default(autoincrement())
+  machineId   Int
+  machine     Machine   @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  name        String
+  weekdays    String    // CSV de días ISO: 1=lunes ... 7=domingo, p.ej. "1,2,3,4,5"
+  strictDays  String    @default("") // días con limpieza profunda, p.ej. "5"
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  steps       PlanStep[]
+  records     CleaningRecord[]
+}
+
+model PlanStep {
+  id             Int          @id @default(autoincrement())
+  planId         Int
+  plan           CleaningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  order          Int
+  textDe         String
+  textEn         String
+  textEs         String
+  onlyStrictDays Boolean      @default(false)
+  recordSteps    RecordStep[]
+}
+
+model CleaningRecord {
+  id          Int          @id @default(autoincrement())
+  machineId   Int
+  machine     Machine      @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  planId      Int?
+  plan        CleaningPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  date        String       // YYYY-MM-DD (día de trabajo)
+  startedAt   DateTime?
+  completedAt DateTime     @default(now())
+  wasStrict   Boolean      @default(false)
+  signature   String       // data URL PNG
+  comment     String?
+  status      String       @default("OK") // OK | WITH_ISSUES
+  steps       RecordStep[]
+  incidents   Incident[]
+
+  @@index([machineId, date])
+}
+
+model RecordStep {
+  id       Int            @id @default(autoincrement())
+  recordId Int
+  record   CleaningRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  stepId   Int?
+  step     PlanStep?      @relation(fields: [stepId], references: [id], onDelete: SetNull)
+  text     String         // copia del texto en el momento de la limpieza (para informes)
+  checked  Boolean
+}
+
+model Incident {
+  id          Int             @id @default(autoincrement())
+  machineId   Int
+  machine     Machine         @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  recordId    Int?
+  record      CleaningRecord? @relation(fields: [recordId], references: [id], onDelete: SetNull)
+  userId      Int
+  user        User            @relation(fields: [userId], references: [id])
+  description String
+  photoUrl    String
+  severity    String          @default("MEDIUM") // LOW | MEDIUM | HIGH
+  resolved    Boolean         @default(false)
+  resolvedAt  DateTime?
+  resolution  String?
+  createdAt   DateTime        @default(now())
+}
+
+model MaintenanceLog {
+  id          Int      @id @default(autoincrement())
+  machineId   Int
+  machine     Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // UPDATE | REPAIR | MAINTENANCE
+  description String
+  technician  String?
+  date        String   // YYYY-MM-DD
+  cost        Float?
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}

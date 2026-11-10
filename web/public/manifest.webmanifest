@@ -1,0 +1,9 @@
+{
+  "name": "Froobie – Reinigung & Qualität",
+  "short_name": "Froobie",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fefdf6",
+  "theme_color": "#9cc53a",
+  "icons": [{ "src": "/logo.jpg", "sizes": "447x447", "type": "image/jpeg", "purpose": "any" }]
+}
