@@ -8,8 +8,8 @@
     "db:migrate": "npm --prefix server run db:migrate",
     "db:seed": "npm --prefix server run db:seed",
     "dev": "concurrently -n server,web -c green,cyan \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
-    "build": "npm --prefix web run build && npm --prefix server run build",
-    "start": "npm --prefix server run start",
+    "build": "node scripts/run.mjs build",
+    "start": "node scripts/run.mjs start",
     "test": "npm --prefix server test",
     "cloud:build": "npm --prefix server ci --include=dev && npm --prefix web ci --include=dev && npm --prefix web run build && npm --prefix server run cloud:build",
     "cloud:start": "npm --prefix server run cloud:start"
